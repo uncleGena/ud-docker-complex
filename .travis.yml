@@ -1,0 +1,22 @@
+sudo: required
+services:
+   - docker
+
+before_install:
+  - docker build -t unclegena/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+ - docker run unclegena/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t unclegena/multi-client ./client
+  - docker build -t unclegena/multi-nginx ./nginx
+  - docker build -t unclegena/multi-server ./server
+  - docker build -t unclegena/multi-worker ./worker
+  #Login to docker cli
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those inages and push then to docker bub
+  - docker push unclegena/multi-client
+  - docker push unclegena/multi-nginx
+  - docker push unclegena/multi-server
+  - docker push unclegena/multi-worker
